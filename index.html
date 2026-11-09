@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CoachEnes — Coaching santé & biohacking</title>
+<meta name="description" content="Guides sportifs, compléments et coaching perso pour optimiser ton corps et ton énergie.">
+<style>
+:root{--bg:#fafaf7;--ink:#14213d;--accent:#2a9d8f;--card:#fff;--line:#e6e6e0}
+*{box-sizing:border-box;margin:0}
+body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5}
+header{display:flex;justify-content:space-between;align-items:center;padding:16px 24px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg)}
+.logo{font-weight:800;font-size:20px}
+button{font:inherit;cursor:pointer;border:0;border-radius:8px;padding:10px 16px;background:var(--ink);color:#fff}
+button.accent{background:var(--accent)}
+.hero{text-align:center;padding:72px 24px}
+.hero h1{font-size:clamp(32px,6vw,56px);max-width:700px;margin:0 auto 16px}
+.hero p{max-width:520px;margin:0 auto 24px;opacity:.75}
+section{max-width:1000px;margin:0 auto;padding:24px}
+h2{margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+.img{height:140px;display:grid;place-items:center;font-size:56px}
+.body{padding:16px;display:flex;flex-direction:column;gap:8px;flex:1}
+.body p{font-size:14px;opacity:.7;flex:1}
+.price{font-weight:700}
+footer{text-align:center;padding:32px;opacity:.5;font-size:14px}
+#cart{position:fixed;top:0;right:0;width:min(360px,100%);height:100%;background:#fff;border-left:1px solid var(--line);padding:20px;transform:translateX(100%);transition:transform .2s;display:flex;flex-direction:column;gap:12px;z-index:10}
+#cart.open{transform:none}
+#items{flex:1;overflow:auto}
+.row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--line);gap:8px}
+.row button{padding:2px 8px;background:#eee;color:var(--ink)}
+</style>
+</head>
+<body>
+<header>
+  <span class="logo">💪 CoachEnes</span>
+  <button onclick="toggleCart()">Panier (<span id="count">0</span>)</button>
+</header>
+
+<div class="hero">
+  <h1>Optimise ton corps. Booste ton énergie.</h1>
+  <p>Guides sportifs, compléments ciblés et coaching perso pour passer au niveau supérieur.</p>
+  <button class="accent" onclick="document.getElementById('offres').scrollIntoView({behavior:'smooth'})">Voir les offres</button>
+</div>
+
+<section id="offres">
+  <h2>Nos offres</h2>
+  <div class="grid" id="products"></div>
+</section>
+
+<footer>© 2026 CoachEnes — site de démonstration</footer>
+
+<aside id="cart">
+  <div class="row" style="border:0"><strong>Ton panier</strong><button onclick="toggleCart()">✕</button></div>
+  <div id="items"></div>
+  <div class="row" style="border:0"><strong>Total</strong><strong id="total">0 €</strong></div>
+  <button class="accent" onclick="checkout()">Commander</button>
+</aside>
+
+<script>
+const products=[
+  {id:1,name:"Guide Force 12 semaines",desc:"Programme de musculation complet en PDF.",price:29,emoji:"🏋️",color:"#e0f2f1"},
+  {id:2,name:"Guide Sommeil & Énergie",desc:"Protocole biohacking pour mieux dormir.",price:19,emoji:"😴",color:"#e8eaf6"},
+  {id:3,name:"Stack Focus",desc:"Magnésium + Oméga 3 + L-théanine (30 jours).",price:39,emoji:"💊",color:"#fff3e0"},
+  {id:4,name:"Stack Récupération",desc:"Créatine + Zinc + Vitamine D3 (30 jours).",price:34,emoji:"🧪",color:"#fce4ec"},
+  {id:5,name:"Bilan perso 30 min",desc:"Visio avec un coach pour cadrer ta routine.",price:49,emoji:"📞",color:"#f1f8e9"},
+  {id:6,name:"Coaching 1:1 — 1 mois",desc:"Suivi hebdo, plan sur-mesure, support WhatsApp.",price:149,emoji:"🎯",color:"#e3f2fd"}
+];
+let cart=JSON.parse(localStorage.getItem("cart")||"{}");
+const $=id=>document.getElementById(id);
+$("products").innerHTML=products.map(p=>`<div class="card"><div class="img" style="background:${p.color}">${p.emoji}</div><div class="body"><strong>${p.name}</strong><p>${p.desc}</p><span class="price">${p.price} €</span><button onclick="add(${p.id})">Ajouter au panier</button></div></div>`).join("");
+function save(){localStorage.setItem("cart",JSON.stringify(cart));render()}
+function add(id){cart[id]=(cart[id]||0)+1;save();$("cart").classList.add("open")}
+function change(id,d){cart[id]+=d;if(cart[id]<=0)delete cart[id];save()}
+function toggleCart(){$("cart").classList.toggle("open")}
+function checkout(){if(!Object.keys(cart).length)return;alert("Démo : paiement non activé. Merci !");cart={};save();toggleCart()}
+function render(){
+  const lines=Object.entries(cart).map(([id,q])=>({p:products.find(x=>x.id==id),q}));
+  $("count").textContent=lines.reduce((s,l)=>s+l.q,0);
+  $("total").textContent=lines.reduce((s,l)=>s+l.p.price*l.q,0)+" €";
+  $("items").innerHTML=lines.length?lines.map(l=>`<div class="row"><span>${l.p.emoji} ${l.p.name}</span><span><button onclick="change(${l.p.id},-1)">−</button> ${l.q} <button onclick="change(${l.p.id},1)">+</button></span></div>`).join(""):"<p style='opacity:.5'>Panier vide.</p>";
+}
+render();
+</script>
+</body>
+</html>
